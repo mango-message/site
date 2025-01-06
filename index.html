@@ -7,91 +7,91 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #ffffff;
-            color: #333;
             margin: 0;
             padding: 0;
+            background-color: #f4f4f9;
         }
 
         header {
-            background-color: #ffeb3b;
-            color: #000;
+            background-color: #ffa500;
+            color: white;
             text-align: center;
-            padding: 15px 0;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
+            padding: 1em 0;
         }
 
         main {
-            margin: 0 auto;
-            width: 90%;
-            max-width: 600px;
+            padding: 2em;
         }
 
         form {
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            max-width: 400px;
+            margin: 0 auto;
         }
 
         form input, form textarea, form button {
-            display: block;
-            margin: 10px 0;
             padding: 10px;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
             font-size: 1em;
         }
 
+        form textarea {
+            resize: none;
+        }
+
         form button {
-            background-color: #ffeb3b;
-            color: #000;
+            background-color: #ffa500;
+            color: white;
             border: none;
             cursor: pointer;
             transition: background-color 0.3s;
         }
 
         form button:hover {
-            background-color: #fdd835;
+            background-color: #e59400;
         }
 
         #message-wall {
-            margin-top: 20px;
+            margin-top: 2em;
+            max-width: 600px;
+            margin: 2em auto;
         }
 
         #messages {
-            list-style-type: none;
+            list-style: none;
             padding: 0;
         }
 
         #messages li {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            padding: 10px;
-            text-align: left;
-            border-radius: 4px;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 5px;
+            position: relative;
         }
 
-        #messages .username {
+        #messages li .username {
             font-weight: bold;
-            color: #000;
+            margin-bottom: 0.5em;
         }
 
-        #messages .timestamp {
+        #messages li .message-text {
+            margin: 0;
+        }
+
+        #messages li .timestamp {
+            position: absolute;
+            right: 10px;
+            top: 10px;
             font-size: 0.8em;
-            color: #666;
-            float: right;
-        }
-
-        #messages .message-text {
-            margin: 5px 0;
+            color: gray;
         }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMtC5cYzHwgDK0bpt0sAQWiyITzcOBPXU",
@@ -109,26 +109,25 @@
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("message-form");
             const messagesList = document.getElementById("messages");
-            const blockedRef = ref(db, "blocked");
 
-            form.addEventListener("submit", async (e) => {
+            // Check if the user is blocked
+            if (localStorage.getItem("isBlocked") === "true") {
+                alert("You are blocked from posting messages.");
+                form.remove(); // Remove the form to prevent interaction
+                return;
+            }
+
+            form.addEventListener("submit", (e) => {
                 e.preventDefault();
                 const username = document.getElementById("username").value.trim();
                 const message = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
 
-                // Check if the username is globally blocked
-                const blockedSnapshot = await get(blockedRef);
-                const blockedUsers = blockedSnapshot.val() || {};
-                if (blockedUsers[username.toLowerCase()]) {
-                    alert("You are blocked from posting messages.");
-                    return;
-                }
-
-                // Automatically block "Liam"
+                // Block the username "Liam"
                 if (username.toLowerCase() === "liam") {
-                    alert("This username is not allowed. You have been blocked.");
-                    set(ref(db, `blocked/${username.toLowerCase()}`), true);
+                    alert("You are blocked from posting messages.");
+                    localStorage.setItem("isBlocked", "true");
+                    form.remove(); // Remove the form to prevent further interaction
                     return;
                 }
 
@@ -188,7 +187,7 @@
 </head>
 <body>
     <header>
-        Mango Message
+        <h1>Mango Message</h1>
     </header>
     <main>
         <form id="message-form">
