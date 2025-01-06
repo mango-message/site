@@ -110,11 +110,26 @@
             const form = document.getElementById("message-form");
             const messagesList = document.getElementById("messages");
 
+            // Check if the user is blocked
+            if (localStorage.getItem("isBlocked") === "true") {
+                alert("You are blocked from posting messages.");
+                form.remove(); // Remove the form to prevent interaction
+                return;
+            }
+
             form.addEventListener("submit", (e) => {
                 e.preventDefault();
                 const username = document.getElementById("username").value.trim();
                 const message = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
+
+                // Block the username "Liam"
+                if (username.toLowerCase() === "liam") {
+                    alert("You are blocked from posting messages.");
+                    localStorage.setItem("isBlocked", "true");
+                    form.remove(); // Remove the form to prevent further interaction
+                    return;
+                }
 
                 // Validate the message length
                 if (message.length > 75) {
