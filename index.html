@@ -65,6 +65,7 @@
             padding: 1em;
             margin-bottom: 1em;
             border-radius: 5px;
+            position: relative;
         }
 
         #messages li .username {
@@ -74,6 +75,14 @@
 
         #messages li .message-text {
             margin: 0;
+        }
+
+        #messages li .timestamp {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 0.8em;
+            color: gray;
         }
     </style>
     <script type="module">
@@ -101,18 +110,27 @@
                 e.preventDefault();
                 const username = document.getElementById("username").value.trim();
                 const message = document.getElementById("message").value.trim();
+                const timestamp = new Date().toISOString();
 
                 if (username && message) {
-                    push(ref(db, "messages"), { username, message });
+                    push(ref(db, "messages"), { username, message, timestamp });
                     form.reset();
                 }
             });
 
             const messagesRef = ref(db, "messages");
             onValue(messagesRef, (snapshot) => {
-                messagesList.innerHTML = "";
+                const messages = [];
                 snapshot.forEach((childSnapshot) => {
-                    const { username, message } = childSnapshot.val();
+                    messages.push(childSnapshot.val());
+                });
+
+                // Sort messages by timestamp (newest first)
+                messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                // Clear and repopulate the list
+                messagesList.innerHTML = "";
+                messages.forEach(({ username, message, timestamp }) => {
                     const li = document.createElement("li");
 
                     const usernameDiv = document.createElement("div");
@@ -123,8 +141,13 @@
                     messageTextDiv.className = "message-text";
                     messageTextDiv.textContent = message;
 
+                    const timestampDiv = document.createElement("div");
+                    timestampDiv.className = "timestamp";
+                    timestampDiv.textContent = new Date(timestamp).toLocaleString();
+
                     li.appendChild(usernameDiv);
                     li.appendChild(messageTextDiv);
+                    li.appendChild(timestampDiv);
                     messagesList.appendChild(li);
                 });
             });
