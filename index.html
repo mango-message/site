@@ -1,110 +1,204 @@
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyAMtC5cYzHwgDK0bpt0sAQWiyITzcOBPXU",
-        authDomain: "mango-message-a78a6.firebaseapp.com",
-        projectId: "mango-message-a78a6",
-        storageBucket: "mango-message-a78a6.firebasestorage.app",
-        messagingSenderId: "71943097813",
-        appId: "1:71943097813:web:192fd3e16e95362490415c",
-        measurementId: "G-C0S7F0TZK7"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("message-form");
-        const messagesList = document.getElementById("messages");
-
-        // Check if the user is blocked
-        if (localStorage.getItem("isBlocked") === "true") {
-            alert("You are blocked from posting messages.");
-            form.remove(); // Remove the form to prevent interaction
-            return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mango Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
         }
 
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            const username = document.getElementById("username").value.trim();
-            const message = document.getElementById("message").value.trim();
-            const timestamp = new Date().toISOString();
+        header {
+            background-color: #ffa500;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+        }
 
-            // Block the username "Liam"
-            if (username.toLowerCase() === "liam") {
+        main {
+            padding: 2em;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        form input, form textarea, form button {
+            padding: 10px;
+            font-size: 1em;
+        }
+
+        form textarea {
+            resize: none;
+        }
+
+        form button {
+            background-color: #ffa500;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #e59400;
+        }
+
+        #message-wall {
+            margin-top: 2em;
+            max-width: 600px;
+            margin: 2em auto;
+        }
+
+        #messages {
+            list-style: none;
+            padding: 0;
+        }
+
+        #messages li {
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 1em;
+            margin-bottom: 1em;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        #messages li .username {
+            font-weight: bold;
+            margin-bottom: 0.5em;
+        }
+
+        #messages li .message-text {
+            margin: 0;
+        }
+
+        #messages li .timestamp {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 0.8em;
+            color: gray;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAMtC5cYzHwgDK0bpt0sAQWiyITzcOBPXU",
+            authDomain: "mango-message-a78a6.firebaseapp.com",
+            projectId: "mango-message-a78a6",
+            storageBucket: "mango-message-a78a6.firebasestorage.app",
+            messagingSenderId: "71943097813",
+            appId: "1:71943097813:web:192fd3e16e95362490415c",
+            measurementId: "G-C0S7F0TZK7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("message-form");
+            const messagesList = document.getElementById("messages");
+
+            // Check if the user is blocked
+            if (localStorage.getItem("isBlocked") === "true") {
                 alert("You are blocked from posting messages.");
-                localStorage.setItem("isBlocked", "true");
-                form.remove(); // Remove the form to prevent further interaction
+                form.remove(); // Remove the form to prevent interaction
                 return;
             }
 
-            // Validate the message length
-            if (message.length > 75) {
-                alert("Messages cannot exceed 75 characters.");
-                return;
-            }
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                const username = document.getElementById("username").value.trim();
+                const message = document.getElementById("message").value.trim();
+                const timestamp = new Date().toISOString();
 
-            // Check for blocked words
-            if (message.toLowerCase().includes("gay")) {
-                alert("The word 'gay' is not allowed.");
-                return;
-            }
+                // Block the username "Liam"
+                if (username.toLowerCase() === "liam") {
+                    alert("You are blocked from posting messages.");
+                    localStorage.setItem("isBlocked", "true");
+                    form.remove(); // Remove the form to prevent further interaction
+                    return;
+                }
 
-            if (username && message) {
-                push(ref(db, "messages"), { username, message, timestamp, reports: 0 });
-                form.reset();
-            }
-        });
+                // Validate the message length
+                if (message.length > 75) {
+                    alert("Messages cannot exceed 75 characters.");
+                    return;
+                }
 
-        const messagesRef = ref(db, "messages");
-        onValue(messagesRef, (snapshot) => {
-            const messages = [];
-            snapshot.forEach((childSnapshot) => {
-                messages.push({ id: childSnapshot.key, ...childSnapshot.val() });
+                // Check for blocked words
+                if (message.toLowerCase().includes("gay")) {
+                    alert("The word 'gay' is not allowed.");
+                    return;
+                }
+
+                if (username && message) {
+                    push(ref(db, "messages"), { username, message, timestamp });
+                    form.reset();
+                }
             });
 
-            // Sort messages by timestamp (newest first)
-            messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-            // Clear and repopulate the list
-            messagesList.innerHTML = "";
-            messages.forEach(({ id, username, message, timestamp, reports }) => {
-                const li = document.createElement("li");
-
-                const usernameDiv = document.createElement("div");
-                usernameDiv.className = "username";
-                usernameDiv.textContent = username;
-
-                const messageTextDiv = document.createElement("div");
-                messageTextDiv.className = "message-text";
-                messageTextDiv.textContent = message;
-
-                const timestampDiv = document.createElement("div");
-                timestampDiv.className = "timestamp";
-                timestampDiv.textContent = new Date(timestamp).toLocaleString();
-
-                const reportButton = document.createElement("button");
-                reportButton.textContent = `Report (${reports || 0})`;
-                reportButton.style.marginTop = "10px";
-                reportButton.addEventListener("click", () => {
-                    // Increment the report count
-                    const messageRef = ref(db, `messages/${id}`);
-                    update(messageRef, { reports: (reports || 0) + 1 });
-
-                    // If the message has been reported 5 or more times, remove it
-                    if ((reports || 0) + 1 >= 5) {
-                        remove(messageRef);
-                    }
+            const messagesRef = ref(db, "messages");
+            onValue(messagesRef, (snapshot) => {
+                const messages = [];
+                snapshot.forEach((childSnapshot) => {
+                    messages.push(childSnapshot.val());
                 });
 
-                li.appendChild(usernameDiv);
-                li.appendChild(messageTextDiv);
-                li.appendChild(timestampDiv);
-                li.appendChild(reportButton);
-                messagesList.appendChild(li);
+                // Sort messages by timestamp (newest first)
+                messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                // Clear and repopulate the list
+                messagesList.innerHTML = "";
+                messages.forEach(({ username, message, timestamp }) => {
+                    const li = document.createElement("li");
+
+                    const usernameDiv = document.createElement("div");
+                    usernameDiv.className = "username";
+                    usernameDiv.textContent = username;
+
+                    const messageTextDiv = document.createElement("div");
+                    messageTextDiv.className = "message-text";
+                    messageTextDiv.textContent = message;
+
+                    const timestampDiv = document.createElement("div");
+                    timestampDiv.className = "timestamp";
+                    timestampDiv.textContent = new Date(timestamp).toLocaleString();
+
+                    li.appendChild(usernameDiv);
+                    li.appendChild(messageTextDiv);
+                    li.appendChild(timestampDiv);
+                    messagesList.appendChild(li);
+                });
             });
         });
-    });
-</script>
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Mango Message</h1>
+    </header>
+    <main>
+        <form id="message-form">
+            <input type="text" id="username" placeholder="Enter your username" required>
+            <textarea id="message" maxlength="75" placeholder="Write your message here (max 75 characters)" required></textarea>
+            <button type="submit">Post Message</button>
+        </form>
+        <section id="message-wall">
+            <h2>Message Wall</h2>
+            <ul id="messages"></ul>
+        </section>
+    </main>
+</body>
+</html> 
