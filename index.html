@@ -36,6 +36,10 @@
             font-size: 1em;
         }
 
+        form textarea {
+            resize: none;
+        }
+
         form button {
             background-color: #ffa500;
             color: white;
@@ -112,6 +116,18 @@
                 const message = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
 
+                // Validate the message length
+                if (message.length > 75) {
+                    alert("Messages cannot exceed 75 characters.");
+                    return;
+                }
+
+                // Check for blocked words
+                if (message.toLowerCase().includes("gay")) {
+                    alert("The word 'gay' is not allowed.");
+                    return;
+                }
+
                 if (username && message) {
                     push(ref(db, "messages"), { username, message, timestamp });
                     form.reset();
@@ -161,7 +177,7 @@
     <main>
         <form id="message-form">
             <input type="text" id="username" placeholder="Enter your username" required>
-            <textarea id="message" placeholder="Write your message here" required></textarea>
+            <textarea id="message" maxlength="75" placeholder="Write your message here (max 75 characters)" required></textarea>
             <button type="submit">Post Message</button>
         </form>
         <section id="message-wall">
