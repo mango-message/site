@@ -5,7 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mango Message</title>
     <style>
-        /* Same styles as before */
+        body {
+            font-family: "Comic Sans MS", cursive, sans-serif;
+            background-color: #ffe4b5;
+            color: #333;
+            text-align: center;
+        }
+
+        header {
+            background-color: #ff8c00;
+            color: white;
+            padding: 20px 0;
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        main {
+            margin: 20px auto;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        form input, form textarea, form button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid #ffa07a;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        form button {
+            background-color: #ff8c00;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form button:hover {
+            background-color: #e76e00;
+        }
+
+        #message-wall {
+            margin-top: 20px;
+        }
+
+        #messages {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #messages li {
+            background-color: #fff;
+            border: 2px solid #ffa07a;
+            margin-bottom: 10px;
+            padding: 10px;
+            text-align: left;
+            border-radius: 5px;
+        }
+
+        #messages .username {
+            font-weight: bold;
+            color: #ff4500;
+        }
+
+        #messages .timestamp {
+            font-size: 0.8em;
+            color: #555;
+            float: right;
+        }
+
+        #messages .message-text {
+            margin: 5px 0;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
@@ -106,7 +185,7 @@
 </head>
 <body>
     <header>
-        <h1>Mango Message</h1>
+        Mango Message
     </header>
     <main>
         <form id="message-form">
