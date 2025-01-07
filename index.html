@@ -189,7 +189,7 @@
 
                         const messageRef = ref(db, `messages/${id}`);
                         update(messageRef, { reports: (reports || 0) + 1 });
-                        if ((reports || 0) + 1 >= 10) {
+                        if ((reports || 0) + 1 >= 5) {
                             remove(messageRef);
                         }
                     });
