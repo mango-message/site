@@ -127,17 +127,7 @@
             const form = document.getElementById("message-form");
             const messagesList = document.getElementById("messages");
 
-            // List of blocked words
-            const bannedWords = [
-                "gay", 
-                "nigger", 
-                "nigga", 
-                "faggot", 
-                "kike", 
-                "chink", 
-                "spic", 
-                "retard"
-            ];
+            const bannedWords = ["gay", "nigger", "nigga", "faggot", "kike", "chink", "spic", "retard"];
 
             form.addEventListener("submit", (e) => {
                 e.preventDefault();
@@ -156,12 +146,9 @@
                     return;
                 }
 
-                const lowerMessage = message.toLowerCase();
-                for (const word of bannedWords) {
-                    if (lowerMessage.includes(word)) {
-                        alert("Your message contains inappropriate language and cannot be posted.");
-                        return;
-                    }
+                if (bannedWords.some((word) => message.toLowerCase().includes(word))) {
+                    alert("Your message contains inappropriate language and cannot be posted.");
+                    return;
                 }
 
                 if (username && message) {
@@ -191,6 +178,15 @@
 
                     const reportButton = li.querySelector("button");
                     reportButton.addEventListener("click", () => {
+                        const reportedMessages = JSON.parse(localStorage.getItem("reportedMessages")) || [];
+                        if (reportedMessages.includes(id)) {
+                            alert("You have already reported this message.");
+                            return;
+                        }
+
+                        reportedMessages.push(id);
+                        localStorage.setItem("reportedMessages", JSON.stringify(reportedMessages));
+
                         const messageRef = ref(db, `messages/${id}`);
                         update(messageRef, { reports: (reports || 0) + 1 });
                         if ((reports || 0) + 1 >= 5) {
