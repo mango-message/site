@@ -143,6 +143,13 @@
                     return;
                 }
 
+                     // Check for blocked words
+                if (message.toLowerCase().includes("nigger")) {
+                    alert("The word 'N-Word' is not allowed.");
+                    return;
+                }
+
+
                 if (username && message) {
                     push(ref(db, "messages"), { username, message, timestamp });
                     form.reset();
