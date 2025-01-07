@@ -89,9 +89,26 @@
             color: gray;
         }
     </style>
+</head>
+<body>
+    <header>
+        <h1>Mango Message</h1>
+    </header>
+    <main>
+        <form id="message-form">
+            <input type="text" id="username" placeholder="Enter your username" required>
+            <textarea id="message" maxlength="75" placeholder="Write your message here (max 75 characters)" required></textarea>
+            <button type="submit">Post Message</button>
+        </form>
+        <section id="message-wall">
+            <h2>Message Wall</h2>
+            <ul id="messages"></ul>
+        </section>
+    </main>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAMtC5cYzHwgDK0bpt0sAQWiyITzcOBPXU",
@@ -110,12 +127,17 @@
             const form = document.getElementById("message-form");
             const messagesList = document.getElementById("messages");
 
-            // Check if the user is blocked
-            if (localStorage.getItem("isBlocked") === "true") {
-                alert("You are blocked from posting messages.");
-                form.remove(); // Remove the form to prevent interaction
-                return;
-            }
+            // List of blocked words
+            const bannedWords = [
+                "gay", 
+                "nigger", 
+                "nigga", 
+                "faggot", 
+                "kike", 
+                "chink", 
+                "spic", 
+                "retard"
+            ];
 
             form.addEventListener("submit", (e) => {
                 e.preventDefault();
@@ -123,35 +145,27 @@
                 const message = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
 
-                // Block the username "Liam"
                 if (username.toLowerCase() === "liam") {
                     alert("You are blocked from posting messages.");
                     localStorage.setItem("isBlocked", "true");
-                    form.remove(); // Remove the form to prevent further interaction
                     return;
                 }
 
-                // Validate the message length
                 if (message.length > 75) {
                     alert("Messages cannot exceed 75 characters.");
                     return;
                 }
 
-                // Check for blocked words
-                if (message.toLowerCase().includes("gay")) {
-                    alert("The word 'gay' is not allowed.");
-                    return;
+                const lowerMessage = message.toLowerCase();
+                for (const word of bannedWords) {
+                    if (lowerMessage.includes(word)) {
+                        alert("Your message contains inappropriate language and cannot be posted.");
+                        return;
+                    }
                 }
-
-                     // Check for blocked words
-                if (message.toLowerCase().includes("nigger")) {
-                    alert("The word 'N-Word' is not allowed.");
-                    return;
-                }
-
 
                 if (username && message) {
-                    push(ref(db, "messages"), { username, message, timestamp });
+                    push(ref(db, "messages"), { username, message, timestamp, reports: 0 });
                     form.reset();
                 }
             });
@@ -160,52 +174,34 @@
             onValue(messagesRef, (snapshot) => {
                 const messages = [];
                 snapshot.forEach((childSnapshot) => {
-                    messages.push(childSnapshot.val());
+                    messages.push({ id: childSnapshot.key, ...childSnapshot.val() });
                 });
 
-                // Sort messages by timestamp (newest first)
                 messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-                // Clear and repopulate the list
                 messagesList.innerHTML = "";
-                messages.forEach(({ username, message, timestamp }) => {
+                messages.forEach(({ id, username, message, timestamp, reports }) => {
                     const li = document.createElement("li");
+                    li.innerHTML = `
+                        <div class="username">${username}</div>
+                        <div class="message-text">${message}</div>
+                        <div class="timestamp">${new Date(timestamp).toLocaleString()}</div>
+                        <button>Report (${reports || 0})</button>
+                    `;
 
-                    const usernameDiv = document.createElement("div");
-                    usernameDiv.className = "username";
-                    usernameDiv.textContent = username;
+                    const reportButton = li.querySelector("button");
+                    reportButton.addEventListener("click", () => {
+                        const messageRef = ref(db, `messages/${id}`);
+                        update(messageRef, { reports: (reports || 0) + 1 });
+                        if ((reports || 0) + 1 >= 5) {
+                            remove(messageRef);
+                        }
+                    });
 
-                    const messageTextDiv = document.createElement("div");
-                    messageTextDiv.className = "message-text";
-                    messageTextDiv.textContent = message;
-
-                    const timestampDiv = document.createElement("div");
-                    timestampDiv.className = "timestamp";
-                    timestampDiv.textContent = new Date(timestamp).toLocaleString();
-
-                    li.appendChild(usernameDiv);
-                    li.appendChild(messageTextDiv);
-                    li.appendChild(timestampDiv);
                     messagesList.appendChild(li);
                 });
             });
         });
     </script>
-</head>
-<body>
-    <header>
-        <h1>Mango Message</h1>
-    </header>
-    <main>
-        <form id="message-form">
-            <input type="text" id="username" placeholder="Enter your username" required>
-            <textarea id="message" maxlength="75" placeholder="Write your message here (max 75 characters)" required></textarea>
-            <button type="submit">Post Message</button>
-        </form>
-        <section id="message-wall">
-            <h2>Message Wall</h2>
-            <ul id="messages"></ul>
-        </section>
-    </main>
 </body>
-</html> 
+</html>
