@@ -136,7 +136,13 @@
                 const message = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
 
-                if (username.toLowerCase() === "liam") {
+                if (username.toLowerCase() === "harris") {
+                    alert("You are blocked from posting messages.");
+                    localStorage.setItem("isBlocked", "true");
+                    return;
+                }
+
+                 if (username.toLowerCase() === "liam") {
                     alert("You are blocked from posting messages.");
                     localStorage.setItem("isBlocked", "true");
                     return;
