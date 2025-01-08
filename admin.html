@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+        }
+        .login-container {
+            text-align: center;
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input {
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 1em;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #ffa500;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #e59400;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Admin Login</h1>
+        <input type="password" id="passcode" placeholder="Enter Admin Passcode" required>
+        <button onclick="authenticate()">Login</button>
+        <p id="error-message" style="color: red;"></p>
+    </div>
+    <script>
+        function authenticate() {
+            const passcode = document.getElementById('passcode').value;
+            const adminPasscode = 'Bobert1234'; // Replace with a more secure method in production
+
+            if (passcode === adminPasscode) {
+                localStorage.setItem('isAdmin', 'true');
+                window.location.href = 'group_chat.html'; // Redirect to the group chat page
+            } else {
+                document.getElementById('error-message').textContent = 'Incorrect passcode. Please try again.';
+            }
+        }
+    </script>
+</body>
+</html>
