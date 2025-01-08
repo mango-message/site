@@ -1,1 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Group Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            text-align: center;
+            padding: 1em 0;
+            background-color: #ffa500;
+            color: white;
+            margin: 0;
+        }
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 60px);
+        }
+        #messages {
+            flex: 1;
+            overflow-y: auto;
+            list-style-type: none;
+            padding: 1em;
+            margin: 0;
+        }
+        #messages li {
+            background-color: #fff;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .delete-button {
+            background-color: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            border-radius: 3px;
+        }
+        #message-form {
+            display: flex;
+            padding: 1em;
+            background-color: #fff;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        #message-form input,
+        #message-form textarea {
+            flex: 1;
+            margin-right: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        #message-form button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #ffa500;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        #message-form button:hover {
+            background-color: #e59400;
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js';
+        import { getDatabase, ref, push, onValue, remove } from 'https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: 'YOUR_API_KEY', // Replace with your actual API key
+            authDomain: 'YOUR_AUTH_DOMAIN', // Replace with your actual Auth Domain
+            databaseURL: 'YOUR_DATABASE_URL', // Replace with your actual Database URL
+            projectId: 'YOUR_PROJECT_ID', // Replace with your actual Project ID
+            storageBucket: 'YOUR_STORAGE_BUCKET', // Replace with your actual Storage Bucket
+            messagingSenderId: 'YOUR_MESSAGING_SENDER_ID', // Replace with your actual Messaging Sender ID
+            appId: 'YOUR_APP_ID', // Replace with your actual App ID
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const messagesRef = ref(db, 'group_chat_messages'); // Ensure this path matches your database structure
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+            function renderMessages(messages) {
+                const messagesList = document.getElementById('messages');
+                messagesList.innerHTML = '';
+                messages.forEach(({ id, username, message, timestamp }) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <strong>${username}</strong>: ${message}
+                        <span style="font-size: 0.8em; color: gray;"> (${new Date(timestamp).toLocaleString()})</span>
+                    `;
+                    if (isAdmin) {
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.className = 'delete-button';
+                        deleteButton.onclick = () => deleteMessage(id);
+                        li.appendChild(deleteButton);
+                    }
+                   
+::contentReference[oaicite:0]{index=0}
+ 
 
