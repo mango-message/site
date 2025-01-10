@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,6 +123,21 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // Sanitize user input
+        function processInput(input) {
+            const hasHTML = /<\/?[a-z][\s\S]*>/i.test(input);
+            if (hasHTML) {
+                alert("HTML tags are not allowed in the message!");
+                return null;
+            }
+            return input
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const form = document.getElementById("chat-form");
             const messagesList = document.getElementById("messages");
@@ -132,17 +146,23 @@
 
             form.addEventListener("submit", (e) => {
                 e.preventDefault();
-                const username = document.getElementById("username").value.trim();
-                const message = document.getElementById("message").value.trim();
+                const rawUsername = document.getElementById("username").value.trim();
+                const rawMessage = document.getElementById("message").value.trim();
                 const timestamp = new Date().toISOString();
 
-                if (username.toLowerCase() === "harris") {
-                    alert("You are blocked from posting messages.");
-                    localStorage.setItem("isBlocked", "true");
+                const username = processInput(rawUsername);
+                const message = processInput(rawMessage);
+
+                if (!username || !message) {
+                    return; // Stop if sanitization fails
+                }
+
+                if (bannedWords.some((word) => message.toLowerCase().includes(word))) {
+                    alert("Your message contains inappropriate language and cannot be posted.");
                     return;
                 }
 
-                 if (username.toLowerCase() === "liam") {
+                if (username.toLowerCase() === "harris" || username.toLowerCase() === "liam") {
                     alert("You are blocked from posting messages.");
                     localStorage.setItem("isBlocked", "true");
                     return;
@@ -150,11 +170,6 @@
 
                 if (message.length > 75) {
                     alert("Messages cannot exceed 75 characters.");
-                    return;
-                }
-
-                if (bannedWords.some((word) => message.toLowerCase().includes(word))) {
-                    alert("Your message contains inappropriate language and cannot be posted.");
                     return;
                 }
 
